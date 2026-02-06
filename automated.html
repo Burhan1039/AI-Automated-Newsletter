@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Newsletter Agent</title>
+  <meta name="description" content="Create your personal AI newsletter agent. Tailored insights delivered automatically." />
+
+  <style>
+    :root{
+      --bg0:#050816;
+      --bg1:#070a1a;
+      --card: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.12);
+      --text:#eaf0ff;
+      --muted:#a8b4d6;
+      --muted2:#7f8ab0;
+      --accent:#7c3aed;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --shadow: 0 30px 80px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 600px at 15% 10%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(800px 500px at 85% 20%, rgba(34,197,94,.22), transparent 55%),
+        radial-gradient(900px 700px at 50% 110%, rgba(59,130,246,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+      min-height: 100vh;
+    }
+    .container{
+      width: min(1100px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 70px;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding: 14px 16px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:700;
+      letter-spacing:-.02em;
+    }
+    .logo{
+      width:34px; height:34px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.85));
+      box-shadow: 0 12px 30px rgba(124,58,237,.22);
+    }
+    .pill{
+      font-size:12px;
+      color: var(--muted);
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      padding: 8px 10px;
+      border-radius: 999px;
+    }
+    .hero{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 26px;
+      margin-top: 22px;
+      align-items: start;
+    }
+    @media (max-width: 920px){ .hero{ grid-template-columns: 1fr; } }
+    .hero-left{ padding: 10px 6px; }
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: var(--accent2);
+      box-shadow: 0 0 0 6px rgba(34,197,94,.12);
+    }
+    h1{
+      margin:0 0 12px;
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+    .sub{
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 58ch;
+    }
+    .bullets{ display:grid; gap:10px; margin-top: 14px; max-width: 62ch; }
+    .bullet{ display:flex; gap:10px; align-items:flex-start; color: var(--muted); line-height:1.5; font-size: 14px; }
+    .check{
+      width:22px; height:22px;
+      border-radius: 8px;
+      background: rgba(34,197,94,.15);
+      border:1px solid rgba(34,197,94,.25);
+      display:grid;
+      place-items:center;
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+    .check svg{ width:14px; height:14px; }
+
+    .card{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-head{
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card-head .title{ font-weight: 700; letter-spacing: -0.02em; }
+    .badge{
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(124,58,237,.35);
+      background: rgba(124,58,237,.14);
+      color: #d8ccff;
+    }
+    .card-body{ padding: 18px; }
+
+    label{
+      display:block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .field{ margin-bottom: 12px; }
+    input, textarea{
+      width:100%;
+      border-radius: 14px;
+      padding: 12px 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline:none;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    textarea{ min-height: 92px; resize: vertical; }
+    input:focus, textarea:focus{
+      border-color: rgba(124,58,237,.65);
+      box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+    }
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px){ .grid2{ grid-template-columns: 1fr; } }
+
+    .btn{
+      width:100%;
+      border:0;
+      cursor:pointer;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      color: white;
+      background: linear-gradient(135deg, rgba(124,58,237,1), rgba(34,197,94,.9));
+      box-shadow: 0 18px 45px rgba(124,58,237,.20);
+      transition: filter .15s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .btn:hover{ filter: brightness(1.05); }
+    .btn:disabled{ opacity:.65; cursor:not-allowed; filter:none; box-shadow:none; }
+
+    .status{
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+    .ok{ color: var(--accent2); }
+    .err{ color: var(--danger); }
+
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.5;
+    }
+
+    .section{ margin-top: 26px; }
+    .section h2{ margin:0 0 10px; font-size: 18px; letter-spacing: -0.02em; }
+    .cards{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 920px){ .cards{ grid-template-columns: 1fr; } }
+    .mini{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .mini .t{ font-weight: 700; margin-bottom: 6px; }
+    .mini .d{ color: var(--muted); font-size: 13px; line-height: 1.55; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>AI Newsletter Agent</div>
+      </div>
+      <div class="pill">Automated Newsletter</div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-left">
+        <div class="kicker"><span class="dot"></span> Create an agent profile → newsletters are generated automatically</div>
+
+        <h1>Get a newsletter written for <span style="color:#d8ccff;">you</span> automatically.</h1>
+        <p class="sub">
+          Create an AI agent with your persona and market. Your Xano background task generates and emails your newsletter on schedule.
+        </p>
+
+        <div class="bullets">
+          <div class="bullet">
+            <div class="check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20 7L10 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div><b>Tailored output:</b> persona + market shape the content.</div>
+          </div>
+
+          <div class="bullet">
+            <div class="check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20 7L10 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div><b>Hands-off:</b> once created, the background task does the rest.</div>
+          </div>
+
+          <div class="bullet">
+            <div class="check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20 7L10 17l-5-5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div><b>Stored history:</b> newsletters are saved in the <b>newsletter</b> table.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="title">Create / Update your agent</div>
+          <div class="badge">Upsert by email</div>
+        </div>
+
+        <div class="card-body">
+          <form id="agentForm">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" required placeholder="Jane Doe" />
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" type="email" required placeholder="jane@company.com" />
+            </div>
+
+            <div class="field">
+              <label for="persona">Persona</label>
+              <textarea id="persona" placeholder="e.g. Current Real Estate Market Trends"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="market">Market</label>
+              <input id="market" placeholder="Real Estate" />
+            </div>
+
+            <button id="btn" class="btn" type="submit">
+              <span>Create / Update Agent</span>
+              <span aria-hidden="true">→</span>
+            </button>
+
+            <div id="status" class="status"></div>
+
+            <div class="hint">
+              If the email already exists, the agent will be updated instead of throwing a duplicate error.
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>How it works</h2>
+      <div class="cards">
+        <div class="mini">
+          <div class="t">1) Upsert agent</div>
+          <div class="d">This page creates or updates an <b>agent</b> record by email.</div>
+        </div>
+        <div class="mini">
+          <div class="t">2) Weekly task</div>
+          <div class="d">You will receive your newsletter after a week</div>
+        </div>
+        <div class="mini">
+          <div class="t">3) Email delivery</div>
+          <div class="d">Task emails each agent automatically on the schedule.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ✅ Set this to your Xano endpoint that does UPSERT:
+     * - if email exists -> update agent
+     * - else -> create agent
+     */
+    const XANO_UPSERT_AGENT_ENDPOINT = "https://xggz-mymh-hmop.n7c.xano.io/api:wwkZC37E/agent";
+
+    const form = document.getElementById("agentForm");
+    const statusEl = document.getElementById("status");
+    const btn = document.getElementById("btn");
+
+    function setStatus(msg, type){
+      statusEl.textContent = msg || "";
+      statusEl.className = "status " + (type || "");
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      btn.disabled = true;
+      setStatus("Saving agent…");
+
+      const payload = {
+        name: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        persona: document.getElementById("persona").value.trim(),
+        market: document.getElementById("market").value.trim()
+      };
+
+      try {
+        const res = await fetch(XANO_UPSERT_AGENT_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch {}
+
+        if (!res.ok) {
+          const apiMsg = data?.message || data?.error || text || `Request failed (${res.status})`;
+
+          if (apiMsg.toLowerCase().includes("duplicate")) {
+            throw new Error("This email already exists. Please update the existing agent or use a different email.");
+          }
+
+          throw new Error(apiMsg);
+        }
+
+        const mode = data?.mode || "created";
+        setStatus(
+          mode === "updated"
+            ? "✅ Agent updated! You’ll keep receiving newsletters."
+            : "🎉 Agent created! Your newsletter will arrive automatically.",
+          "ok"
+        );
+
+        form.reset();
+      } catch (err) {
+        setStatus(err?.message || "Something went wrong.", "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
